@@ -1,0 +1,2 @@
+class CustomerSessionNotFoundException(Exception):
+    pass
