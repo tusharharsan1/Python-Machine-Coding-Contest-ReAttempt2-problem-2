@@ -24,7 +24,9 @@ class InMemoryOrderRepository(OrderRepository):
         return order
 
     def find_orders_by_customer_session(self, customer_session_id: int) -> List[Order]:
-        # TODO: Return a list with all the orders whose customer_session.id == customer_session_id.
-        #   Loop over self.orders_map.values() and collect the matching orders.
-        #   If there is no such order, return an empty list.
-        return []  # delete this line when you are done
+        """Returns all the orders of this customer session (an empty list if there are none)."""
+        orders_of_session = []
+        for order in self.orders_map.values():
+            if order.customer_session.id == customer_session_id:
+                orders_of_session.append(order)
+        return orders_of_session

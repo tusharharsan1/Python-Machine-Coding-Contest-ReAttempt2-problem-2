@@ -24,9 +24,8 @@ class InMemoryCustomerSessionRepository(CustomerSessionRepository):
         return customer_session
 
     def find_active_customer_session_by_user_id(self, user_id: int) -> Optional[CustomerSession]:
-        # TODO: Find a CustomerSession where:
-        #   1. customer_session.user.id == user_id
-        #   2. customer_session.is_active() is True (its status is ACTIVE)
-        # Loop over self.customer_session_map.values() and return the first matching session,
-        # or None if there is no such session.
-        return None  # delete this line when you are done
+        """Returns the active session of this user, or None if there is no such session."""
+        for customer_session in self.customer_session_map.values():
+            if customer_session.user.id == user_id and customer_session.is_active():
+                return customer_session
+        return None

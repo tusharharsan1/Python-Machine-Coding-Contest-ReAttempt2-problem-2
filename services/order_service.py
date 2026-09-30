@@ -29,32 +29,33 @@ class OrderService:
             CustomerSessionNotFoundException: if the user has no active customer session.
         """
 
-        # TODO Step 1: Find the active customer session of this user.
-        #   Use: self.customer_session_repository.find_active_customer_session_by_user_id(user_id)
-        #   If you get None (no active session), raise CustomerSessionNotFoundException("...some message...").
+        # Step 1: find the active session of this user, it must exist
+        customer_session = self.customer_session_repository.find_active_customer_session_by_user_id(user_id)
+        if customer_session is None:
+            raise CustomerSessionNotFoundException(f"No active customer session for user {user_id}")
 
-        # TODO Step 2: End the session, so it cannot be billed again.
-        #   customer_session.customer_session_status = CustomerSessionStatus.ENDED
-        #   Save it back: self.customer_session_repository.save(customer_session)
+        # Step 2: end the session, so the customer cannot be billed twice for the same orders
+        customer_session.customer_session_status = CustomerSessionStatus.ENDED
+        self.customer_session_repository.save(customer_session)
 
-        # TODO Step 3: Get all the orders of this customer session.
-        #   Use: self.order_repository.find_orders_by_customer_session(customer_session.id)
+        # Step 3: get all the orders of this session
+        orders = self.order_repository.find_orders_by_customer_session(customer_session.id)
 
-        # TODO Step 4: Put the items of all the orders together into ONE dictionary.
-        #   ordered_items: Dict[MenuItem, int] = {}   (the key is a MenuItem, the value is the total quantity)
-        #   Loop over the orders, and inside it loop over order.ordered_items.items() (menu_item, quantity).
-        #   Add the quantity to what is already there:
-        #       ordered_items[menu_item] = ordered_items.get(menu_item, 0) + quantity
+        # Step 4: put the items of all the orders together into ONE new dictionary {menu item: total quantity}
+        ordered_items: Dict[MenuItem, int] = {}
+        for order in orders:
+            for menu_item, quantity in order.ordered_items.items():
+                ordered_items[menu_item] = ordered_items.get(menu_item, 0) + quantity
 
-        # TODO Step 5: Calculate the food cost.
-        #   food_cost = the sum of (menu_item.price * quantity) over ordered_items
+        # Step 5: the food cost is the sum of price x quantity of every item
+        food_cost = 0.0
+        for menu_item, quantity in ordered_items.items():
+            food_cost += menu_item.price * quantity
 
-        # TODO Step 6: Calculate the taxes.
-        #   gst = food_cost * GST_RATE
-        #   service_charge = food_cost * SERVICE_CHARGE_RATE
-        #   total_amount = food_cost + gst + service_charge
+        # Step 6: the taxes are a percentage of the food cost
+        gst = food_cost * GST_RATE
+        service_charge = food_cost * SERVICE_CHARGE_RATE
+        total_amount = food_cost + gst + service_charge
 
-        # TODO Step 7: Create a Bill and return it (and delete the line `return None` below).
-        #   Bill(ordered_items=..., total_amount=..., gst=..., service_charge=...)
-
-        return None
+        # Step 7: create the bill and return it
+        return Bill(ordered_items=ordered_items, total_amount=total_amount, gst=gst, service_charge=service_charge)

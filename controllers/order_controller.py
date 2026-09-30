@@ -11,10 +11,9 @@ class OrderController:
     def generate_bill(self, request_dto: GenerateBillRequestDto) -> GenerateBillResponseDto:
         response_dto = GenerateBillResponseDto()
         try:
-            # TODO: 1. Call self.order_service.generate_bill(request_dto.user_id)
-            #       2. Put the Bill that comes back in response_dto.bill
-            #       3. Set response_dto.response_status = ResponseStatus.SUCCESS
-            pass
+            bill = self.order_service.generate_bill(request_dto.user_id)
+            response_dto.bill = bill
+            response_dto.response_status = ResponseStatus.SUCCESS
         except Exception:
             # If ANY exception happens (for example the customer session is not found), the status is FAILURE
             # and the bill must stay None.
